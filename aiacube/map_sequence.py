@@ -16,9 +16,9 @@ from sunpy.physics.differential_rotation import solar_rotate_coordinate
 import ndcube
 from scipy.ndimage.interpolation import shift
 
-from lazy_io import validate_dtype_shape, get_header, DelayedFITS
+from .lazy_io import validate_dtype_shape, get_header, DelayedFITS
 
-__all__ = ['AIASequence']
+__all__ = ['AIASequence', 'derotate']
 
 
 class AIASequence(ndcube.NDCubeSequence):

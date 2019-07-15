@@ -7,6 +7,9 @@ import numpy as np
 import dask.array as da
 from sunpy.map import GenericMap
 
+__all__ = ['get_lags', 'cross_correlation', 'peak_cross_correlation_map',
+           'time_lag_map']
+
 
 def get_lags(time):
     delta_t = np.diff(time.value).cumsum()
@@ -70,7 +73,7 @@ def peak_cross_correlation_map(ndcube_a, ndcube_b, lags, **kwargs):
     return correlation_map
 
 
-def timelag_map(ndcube_a, ndcube_b, lags, **kwargs):
+def time_lag_map(ndcube_a, ndcube_b, lags, **kwargs):
     """
     Construct map of timelag values that maximize the cross-correlation between
     two channels in each pixel of an AIA map.
