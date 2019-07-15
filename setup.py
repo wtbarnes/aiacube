@@ -1,4 +1,3 @@
-import setuptools
 from distutils.core import setup
 
 
@@ -16,7 +15,7 @@ setup(
     author_email='will.t.barnes@gmail.com',
     url='https://gitlab.com/wtbarnes/aiacube',
     packages=['aiacube'],
-    classifieers=[
+    classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intendend Audience :: Scientists',
         'License :: OSI Approved :: MIT License',
