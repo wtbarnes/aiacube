@@ -1,18 +1,14 @@
-import os
 import setuptools
 from distutils.core import setup
 
-# create home directory
-if not os.path.isdir(os.path.join(os.environ['HOME'], '.hissw')):
-    os.mkdir(os.path.join(os.environ['HOME'], '.hissw'))
 
 with open('README.md', 'r') as f:
     long_description = f.read()
 
 setup(
-    name='hissw',
+    name='aiacube',
     license='MIT',
-    version='1.0',
+    version='0.0',
     description='Data containers for analyzing AIA data cubes',
     long_description=long_description,
     long_description_content_type='text/markdown',
