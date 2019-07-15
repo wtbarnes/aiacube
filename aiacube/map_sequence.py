@@ -7,18 +7,49 @@ import numpy as np
 import dask
 import dask.array as da
 import distributed
+from astropy.io import fits
+from astropy.io.fits.hdu.base import BITPIX2DTYPE
 import astropy.wcs
 import astropy.time
 import astropy.units as u
+from sunpy.util.metadata import MetaDict
+import sunpy.io.fits
 from sunpy.map import Map
 from sunpy.instr.aia import aiaprep
 from sunpy.physics.differential_rotation import solar_rotate_coordinate
 import ndcube
 from scipy.ndimage.interpolation import shift
 
-from .lazy_io import validate_dtype_shape, get_header, DelayedFITS
+__all__ = ['AIASequence', 'derotate', 'validate_dtype_shape', 'get_header',
+           'DelayedFITS']
 
-__all__ = ['AIASequence', 'derotate']
+
+def validate_dtype_shape(head):
+    naxes = head['NAXIS']
+    dtype = BITPIX2DTYPE[head['BITPIX']]
+    shape = [head[f'NAXIS{n}'] for n in range(naxes, 0, -1)]
+    return dtype, shape
+
+
+def get_header(fn, hdu=0):
+    with fn as fi:
+        return MetaDict(sunpy.io.fits.get_header(fi)[hdu])
+
+
+class DelayedFITS:
+    def __init__(self, file, shape, dtype, hdu=0, verify=False):
+        self.shape = shape
+        self.dtype = dtype
+        self.file = file
+        self.hdu = hdu
+        self.verify = verify
+
+    def __getitem__(self, item):
+        with self.file as fi:
+            with fits.open(fi, memmap=True) as hdul:
+                if self.verify:
+                    hdul.verify('silentfix+warn')
+                return hdul[self.hdu].data[item]
 
 
 class AIASequence(ndcube.NDCubeSequence):
