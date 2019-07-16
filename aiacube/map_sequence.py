@@ -7,49 +7,18 @@ import numpy as np
 import dask
 import dask.array as da
 import distributed
-from astropy.io import fits
-from astropy.io.fits.hdu.base import BITPIX2DTYPE
 import astropy.wcs
 import astropy.time
 import astropy.units as u
-from sunpy.util.metadata import MetaDict
-import sunpy.io.fits
 from sunpy.map import Map
 from sunpy.instr.aia import aiaprep
 from sunpy.physics.differential_rotation import solar_rotate_coordinate
 import ndcube
 from scipy.ndimage.interpolation import shift
 
-__all__ = ['AIASequence', 'derotate', 'validate_dtype_shape', 'get_header',
-           'DelayedFITS']
+from aiacube.io import validate_dtype_shape, get_header, DelayedFITS
 
-
-def validate_dtype_shape(head):
-    naxes = head['NAXIS']
-    dtype = BITPIX2DTYPE[head['BITPIX']]
-    shape = [head[f'NAXIS{n}'] for n in range(naxes, 0, -1)]
-    return dtype, shape
-
-
-def get_header(fn, hdu=0):
-    with fn as fi:
-        return MetaDict(sunpy.io.fits.get_header(fi)[hdu])
-
-
-class DelayedFITS:
-    def __init__(self, file, shape, dtype, hdu=0, verify=False):
-        self.shape = shape
-        self.dtype = dtype
-        self.file = file
-        self.hdu = hdu
-        self.verify = verify
-
-    def __getitem__(self, item):
-        with self.file as fi:
-            with fits.open(fi, memmap=True) as hdul:
-                if self.verify:
-                    hdul.verify('silentfix+warn')
-                return hdul[self.hdu].data[item]
+__all__ = ['AIASequence', 'derotate']
 
 
 class AIASequence(ndcube.NDCubeSequence):
@@ -84,7 +53,7 @@ class AIASequence(ndcube.NDCubeSequence):
         else:
             futures = client.map(get_header, openfiles, hdu=hdu)
             return client.gather(futures)
-        
+
     @property
     def time(self,):
         return u.Quantity([(astropy.time.Time(m.meta['t_obs'])
@@ -142,10 +111,12 @@ def derotate(smap, ref_map, **kwargs):
     # Calculate shift
     x_shift = (new_coord.Tx - ref_map.center.Tx)/smap.scale.axis1
     y_shift = (new_coord.Ty - ref_map.center.Ty)/smap.scale.axis2
-    # TODO: make this lazy
+
+    # TODO: implement in Dask
     delayed_data_shifted = dask.delayed(shift)(smap.data, [y_shift.value, x_shift.value])
     data_shifted = dask.array.from_delayed(delayed_data_shifted, dtype=smap.data.dtype,
                                            shape=smap.data.shape)
+
     # Update metadata
     new_meta = copy.deepcopy(smap.meta)
     # TODO: Should any keywords be updated here?
