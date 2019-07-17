@@ -89,7 +89,8 @@ class AIASequence(ndcube.NDCubeSequence):
 
     def to_cube(self,):
         """
-        Stack prepped and aligned 2D `ndcube.NDCube` objects into a single 3D `ndcube.NDCube`
+        Stack prepped and aligned 2D `ndcube.NDCube` objects into a single 3D
+        `ndcube.NDCube`
         """
         data_stacked = da.stack([m.data for m in self.data])
         meta_all = {i: m.meta for i, m in enumerate(self.data)}
@@ -102,7 +103,8 @@ class AIASequence(ndcube.NDCubeSequence):
         wcs['NAXIS3'] = len(meta_all)
         wcs['NAXIS1'] = self[0].data.shape[1]
         wcs['NAXIS2'] = self[0].data.shape[0]
-        return ndcube.NDCube(data_stacked, astropy.wcs.WCS(wcs), meta=meta_all)
+        return ndcube.NDCube(data_stacked.astype(self.data[0].data.dtype),
+                             astropy.wcs.WCS(wcs), meta=meta_all)
 
 
 def derotate(smap, ref_map, **kwargs):
