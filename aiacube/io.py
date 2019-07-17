@@ -1,6 +1,7 @@
 """
 Low-level functions and classes for lazily reading FITS data
 """
+import numpy as np
 from astropy.io import fits
 from astropy.io.fits.hdu.base import BITPIX2DTYPE
 from sunpy.util.metadata import MetaDict
@@ -24,7 +25,7 @@ def get_header(fn, hdu=0):
 class DelayedFITS:
     def __init__(self, file, shape, dtype, hdu=0, verify=False):
         self.shape = shape
-        self.dtype = dtype
+        self.dtype = np.dtype(dtype)
         self.file = file
         self.hdu = hdu
         self.verify = verify
