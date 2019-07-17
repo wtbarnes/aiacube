@@ -57,7 +57,7 @@ class AIASequence(ndcube.NDCubeSequence):
     @property
     def time(self,):
         return u.Quantity([(astropy.time.Time(m.meta['t_obs'])
-                            - astropy.time.Time(self[0].meta['t_obs'])).to(u.s) for m in self])
+                            - astropy.time.Time(self.data[0].meta['t_obs'])).to(u.s) for m in self.data])
 
     @property
     def maps(self,):
@@ -91,8 +91,8 @@ class AIASequence(ndcube.NDCubeSequence):
         """
         Stack prepped and aligned 2D `ndcube.NDCube` objects into a single 3D `ndcube.NDCube`
         """
-        data_stacked = da.stack([m.data for m in self])
-        meta_all = {i: m.meta for i, m in enumerate(self)}
+        data_stacked = da.stack([m.data for m in self.data])
+        meta_all = {i: m.meta for i, m in enumerate(self.data)}
         wcs = self[0].wcs.to_header()
         wcs['CTYPE3'] = 'TIME'
         wcs['CUNIT3'] = 's'
