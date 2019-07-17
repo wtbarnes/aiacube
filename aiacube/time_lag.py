@@ -21,7 +21,8 @@ def cross_correlation(ndcube_a, ndcube_b, lags, **kwargs):
     Lazily compute cross-correlation in each pixel of an AIA map
     """
     # Shape must be the same in spatial direction
-    chunks = kwargs.get('chunks', (ndcube_a.shape[1]//10, ndcube_a.shape[2]//10))
+    chunks = kwargs.get('chunks', (ndcube_a.data.shape[1]//10,
+                                   ndcube_a.data.shape[2]//10))
     cube_a = ndcube_a.data.rechunk(ndcube_a.data.shape[:1]+chunks)
     cube_b = ndcube_b.data.rechunk(ndcube_b.data.shape[:1]+chunks)
     #if self.needs_interpolation:
@@ -78,7 +79,7 @@ def time_lag_map(ndcube_a, ndcube_b, lags, **kwargs):
     Construct map of timelag values that maximize the cross-correlation between
     two channels in each pixel of an AIA map.
     """
-    cc = cross_correlation(ndcube_a, ndcube_b, **kwargs)
+    cc = cross_correlation(ndcube_a, ndcube_b, lags, **kwargs)
     bounds = kwargs.get('timelag_bounds', None)
     if bounds is not None:
         indices, = np.where(np.logical_and(lags >= bounds[0], lags <= bounds[1]))
