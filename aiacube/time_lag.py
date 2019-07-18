@@ -89,7 +89,7 @@ def time_lag_map(ndcube_a, ndcube_b, lags, **kwargs):
         start = 0
         stop = lags.shape[0] + 1
     i_max_cc = cc[start:stop, :, :].argmax(axis=0)
-    max_timelag = lags[start:stop][i_max_cc]
+    max_timelag = da.from_array(lags[start:stop])[i_max_cc.flatten()].reshape(i_max_cc.shape)
     meta = copy.deepcopy(ndcube_a.meta[0])
     del meta['instrume']
     del meta['t_obs']
