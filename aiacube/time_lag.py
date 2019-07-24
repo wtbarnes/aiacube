@@ -2,6 +2,7 @@
 Functions for computing time lag and cross-correlation on lazily-loaded AIA data cubes
 """
 import copy
+import warnings
 
 import numpy as np
 import dask.array as da
@@ -21,7 +22,7 @@ def cross_correlation(ndcube_a, ndcube_b, lags, **kwargs):
     Lazily compute cross-correlation in each pixel of an AIA map
     """
     cube_a = ndcube_a.data
-    cube_b = ndcube_b.data    
+    cube_b = ndcube_b.data
     # Don't force rechunking as this can greatly increase graph complexity
     if 'chunks' in kwargs:
         # Must have single chunk along time axis
@@ -48,11 +49,16 @@ def cross_correlation(ndcube_a, ndcube_b, lags, **kwargs):
     return cc / cube_a.shape[0]
 
 
-def peak_cross_correlation_map(ndcube_a, ndcube_b, lags, **kwargs):
+def peak_cross_correlation_map(ndcube_a, ndcube_b, **kwargs):
     """
     Construct map of peak cross-correlation between two channels in each pixel of
     an AIA map.
     """
+    time_a = ndcube_a.axis_world_coords('time')
+    time_b = ndcube_b.axis_world_coords('time')
+    if not (time_a == time_b).all():
+        warnings.warn('time axes of data cubes are not equal.')
+    lags = get_lags(time_a)
     cc = cross_correlation(ndcube_a, ndcube_b, lags, **kwargs)
     bounds = kwargs.get('timelag_bounds', None)
     if bounds is not None:
@@ -76,11 +82,16 @@ def peak_cross_correlation_map(ndcube_a, ndcube_b, lags, **kwargs):
     return correlation_map
 
 
-def time_lag_map(ndcube_a, ndcube_b, lags, **kwargs):
+def time_lag_map(ndcube_a, ndcube_b, **kwargs):
     """
     Construct map of timelag values that maximize the cross-correlation between
     two channels in each pixel of an AIA map.
     """
+    time_a = ndcube_a.axis_world_coords('time')
+    time_b = ndcube_b.axis_world_coords('time')
+    if not (time_a == time_b).all():
+        warnings.warn('time axes of data cubes are not equal.')
+    lags = get_lags(time_a)
     cc = cross_correlation(ndcube_a, ndcube_b, lags, **kwargs)
     bounds = kwargs.get('timelag_bounds', None)
     if bounds is not None:
