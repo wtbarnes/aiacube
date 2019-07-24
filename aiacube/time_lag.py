@@ -20,11 +20,13 @@ def cross_correlation(ndcube_a, ndcube_b, lags, **kwargs):
     """
     Lazily compute cross-correlation in each pixel of an AIA map
     """
-    # Shape must be the same in spatial direction
-    chunks = kwargs.get('chunks', (ndcube_a.data.shape[1]//10,
-                                   ndcube_a.data.shape[2]//10))
-    cube_a = ndcube_a.data.rechunk(ndcube_a.data.shape[:1]+chunks)
-    cube_b = ndcube_b.data.rechunk(ndcube_b.data.shape[:1]+chunks)
+    cube_a = ndcube_a.data
+    cube_b = ndcube_b.data    
+    # Don't force rechunking as this can greatly increase graph complexity
+    if 'chunks' in kwargs:
+        # Must have single chunk along time axis
+        cube_a = cube_a.rechunk(cube_a.shape[:1]+kwargs['chunks'])
+        cube_b = cube_b.rechunk(cube_b.shape[:1]+kwargs['chunks'])
     #if self.needs_interpolation:
     #    cube_a = self._interpolate(self[channel_a].time, cube_a)
     #    cube_b = self._interpolate(self[channel_b].time, cube_b)
