@@ -10,7 +10,9 @@ import astropy.wcs
 import sunpy.map
 import ndcube
 
-import aiacube
+from aiacube.io import validate_dtype_shape
+
+__all__ = ['futures_to_maps', 'maps_to_cube']
 
 
 def futures_to_maps(futures):
@@ -22,7 +24,7 @@ def futures_to_maps(futures):
     fheaders = client.map(lambda x: x.meta, futures, pure=True)
     headers = client.gather(fheaders)
     # Get dtype and shape from headers
-    dtype_shape = [aiacube.io.validate_dtype_shape(h) for h in headers]
+    dtype_shape = [validate_dtype_shape(h) for h in headers]
     # Map only arrays into cluster
     farrays = client.map(lambda x: x.data, futures, pure=True)
     # Create array collections from them
