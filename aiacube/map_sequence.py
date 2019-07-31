@@ -98,7 +98,7 @@ class AIASequence(ndcube.NDCubeSequence):
         wcs['CTYPE3'] = 'TIME'
         wcs['CUNIT3'] = 's'
         wcs['CDELT3'] = np.diff(self.time)[0].to(u.s).value
-        wcs['CRPIX3'] = 0
+        wcs['CRPIX3'] = 1
         wcs['CRVAL3'] = 0
         wcs['NAXIS3'] = len(meta_all)
         wcs['NAXIS1'] = self[0].data.shape[1]
