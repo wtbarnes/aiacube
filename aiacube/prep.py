@@ -11,6 +11,8 @@ from sunpy.instr.aia import aiaprep
 from sunpy.map.header_helper import get_observer_meta
 from sunpy.physics.differential_rotation import solar_rotate_coordinate
 
+from aiacube.util import futures_to_maps
+
 __all__ = ['prep_and_normalize', 'normalize_to_exposure_time', 'derotate']
 
 
@@ -26,8 +28,11 @@ def prep_and_normalize(maps):
     except ValueError:
         return [normalize_to_exposure_time(aiaprep(m)) for m in maps]
     else:
-        maps_prep = client.map(aiaprep, maps)
-        return client.map(normalize_to_exposure_time, maps_prep)
+        maps_prep = client.map(aiaprep, maps, pure=True)
+        maps_norm = client.map(normalize_to_exposure_time, maps_prep,
+                               pure=True)
+        # NOTE: This returns maps which are in the memory of the cluster
+        return futures_to_maps(maps_norm)
 
 
 def normalize_to_exposure_time(smap, default_exposure_time=2.9 * u.s):
