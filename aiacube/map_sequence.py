@@ -39,14 +39,24 @@ class AIACube(ndcube.NDCube):
     def maps(self,):
         return [AIAMap(d, m) for d, m in zip(self.data, self.meta)]
 
-    def derotate(self, **kwargs):
+    def derotate(self, index, **kwargs):
+        """
+        Remove effect of solar rotation. Does not account for differential
+        rotation.
+
+        Parameters
+        ----------
+        index: `int`
+            Index of the reference map to derotate to
+        """
         maps = self.maps
         try:
             client = distributed.get_client()
         except ValueError:
-            maps_derot = [derotate(m, ref_map=maps[0], **kwargs) for m in maps]
+            maps_derot = [derotate(m, ref_map=maps[index], **kwargs)
+                          for m in maps]
         else:
-            ref_map = client.scatter(maps[0])
+            ref_map = client.scatter(maps[index])
             futures = client.map(derotate, maps, ref_map=ref_map, **kwargs)
             maps_derot = futures_to_maps(futures)
 
