@@ -58,7 +58,7 @@ class AIACube(ndcube.NDCube):
         else:
             ref_map = client.scatter(maps[index])
             futures = client.map(derotate, maps, ref_map=ref_map, **kwargs)
-            distributed.wait()  # Block here before creating the maps
+            distributed.wait(futures)  # Block here before creating the maps
             maps_derot = futures_to_maps(futures)
 
         cube = maps_to_cube(maps_derot)

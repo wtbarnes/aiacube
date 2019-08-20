@@ -70,12 +70,9 @@ def derotate(smap, ref_map=None, rot_type='snodgrass'):
     return smap._new_instance(data_shifted, new_meta, smap.plot_settings)
 
 
-def aiaprep(aiamap,
-            order=3,
-            use_scipy=False,
-            missing=None):
+def aiaprep(aiamap, order=3, use_scipy=False, missing=None):
     """
-    This is a temporary version of sunpy.instr.aia.aiaprep adapted directly
+    This is a temporary version of `~sunpy.instr.aia.aiaprep` adapted directly
     from sunpy. It will not live here long and eventually aiaprep will live
     in aiapy anyway
     """
