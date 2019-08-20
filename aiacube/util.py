@@ -11,6 +11,7 @@ import astropy.wcs
 from sunpy.map import Map
 import ndcube
 
+from aiacube import AIACube
 from aiacube.io import validate_dtype_shape, get_header, DelayedFITS
 
 __all__ = ['make_time_wcs', 'files_to_maps', 'futures_to_maps', 'maps_to_cube',
@@ -96,8 +97,7 @@ def maps_to_cube(maps):
     t0 = astropy.time.Time(maps[0].meta['t_obs'])
     time = u.Quantity([(astropy.time.Time(m.meta['t_obs']) - t0).to(u.s)
                        for m in maps])
-    return ndcube.NDCube(data_stacked, make_time_wcs(maps[0], time),
-                         meta=meta_all)
+    return AIACube(data_stacked, make_time_wcs(maps[0], time), meta=meta_all)
 
 
 def files_to_cube(files, **kwargs):
