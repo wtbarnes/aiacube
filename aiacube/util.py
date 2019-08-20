@@ -9,9 +9,7 @@ import astropy.units as u
 import astropy.time
 import astropy.wcs
 from sunpy.map import Map
-import ndcube
 
-from aiacube import AIACube
 from aiacube.io import validate_dtype_shape, get_header, DelayedFITS
 
 __all__ = ['make_time_wcs', 'files_to_maps', 'futures_to_maps', 'maps_to_cube',
@@ -92,6 +90,7 @@ def maps_to_cube(maps):
     `~sunpy.map.Map` objects. It is assumed that the maps are
     sorted with increasing time.
     """
+    from aiacube import AIACube  # to prevent circular import
     data_stacked = da.stack([m.data for m in maps])
     meta_all = {i: m.meta for i, m in enumerate(maps)}
     t0 = astropy.time.Time(maps[0].meta['t_obs'])
