@@ -37,7 +37,7 @@ class AIACube(ndcube.NDCube):
 
     @property
     def maps(self,):
-        return [AIAMap(d, m) for d, m in zip(self.data, self.meta)]
+        return [AIAMap(d, self.meta[i]) for i, d in enumerate(self.data)]
 
     def derotate(self, index, **kwargs):
         """
