@@ -3,6 +3,7 @@ Utilities for building data cubes
 """
 import numpy as np
 import dask
+import dask.bytes
 import dask.array as da
 import distributed
 import astropy.units as u
