@@ -42,7 +42,9 @@ def normalize_to_exposure_time(smap, default_exposure_time=2.9 * u.s):
         exp_time = smap.exposure_time.to(u.s).value
     else:
         exp_time = default_exposure_time.to(u.s).value
-    return smap._new_instance(smap.data / exp_time, smap.meta)
+    new_meta = copy.deepcopy(smap.meta)
+    new_meta['bunit'] = 'ct / pixel / s'
+    return smap._new_instance(smap.data / exp_time, new_meta)
 
 
 def derotate(smap, ref_map=None, rot_type='snodgrass'):
@@ -106,5 +108,6 @@ def aiaprep(aiamap, order=3, use_scipy=False, missing=None):
     newmap.meta['r_sun'] = newmap.meta['rsun_obs'] / newmap.meta['cdelt1']
     newmap.meta['lvl_num'] = 1.5
     newmap.meta['bitpix'] = -64
+    newmap.meta['bunit'] = 'ct / pixel'
 
     return newmap
