@@ -1,6 +1,7 @@
 """
 A loose collection of SunPy maps
 """
+import warnings
 import distributed
 from sunpy.map.sources import AIAMap
 import ndcube
@@ -25,7 +26,7 @@ class AIACube(ndcube.NDCube):
                      sorted prior to loading them into a cube!
         """
         cube = maps_to_cube(futures_to_maps(futures))
-        return cls(cube.data, cube.wcs, meta=cube.meta)
+        return cls(cube.data, cube.wcs, meta=cube.meta, unit=cube.unit)
 
     @classmethod
     def from_files(cls, files, **kwargs):
@@ -37,7 +38,7 @@ class AIACube(ndcube.NDCube):
                      sorted prior to loading them into a cube!
         """
         cube = maps_to_cube(files_to_maps(files, **kwargs))
-        return cls(cube.data, cube.wcs, meta=cube.meta)
+        return cls(cube.data, cube.wcs, meta=cube.meta, unit=cube.unit)
 
     @property
     def maps(self,):
@@ -57,6 +58,7 @@ class AIACube(ndcube.NDCube):
         try:
             client = distributed.get_client()
         except ValueError:
+            warnings.warn('No Dask client found. Derotating eagerly...')
             maps_derot = [derotate(m, ref_map=maps[index], **kwargs)
                           for m in maps]
         else:
@@ -65,4 +67,5 @@ class AIACube(ndcube.NDCube):
             maps_derot = futures_to_maps(futures)
 
         cube = maps_to_cube(maps_derot)
-        return self.__class__(cube.data, cube.wcs, meta=cube.meta)
+        return self.__class__(cube.data, cube.wcs, meta=cube.meta,
+                              unit=cube.unit)
