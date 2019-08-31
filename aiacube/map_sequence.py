@@ -5,8 +5,7 @@ import distributed
 from sunpy.map.sources import AIAMap
 import ndcube
 
-from aiacube.util import (futures_to_cube, files_to_cube, maps_to_cube,
-                          futures_to_maps)
+from aiacube.util import maps_to_cube, futures_to_maps, files_to_maps
 from aiacube.prep import derotate
 
 __all__ = ['AIACube']
@@ -16,23 +15,28 @@ class AIACube(ndcube.NDCube):
     """
     Container for sequential level 1.5 images for a single wavelength
     """
-
     @classmethod
     def from_futures(cls, futures):
         """
         Create a data cube from a list of futures that each return a
         `~sunpy.map.Map` object in order of increasing time.
+
+        .. warning:: It is assumed that all resulting maps are aligned and
+                     sorted prior to loading them into a cube!
         """
-        cube = futures_to_cube(futures)
+        cube = maps_to_cube(futures_to_maps(futures))
         return cls(cube.data, cube.wcs, meta=cube.meta)
 
     @classmethod
-    def from_files(cls, files):
+    def from_files(cls, files, **kwargs):
         """
         Create a data cube from a list of level 1.5 AIA FITS files of a
-        single wavelength. The files should be in order of increasing time.
+        single wavelength.
+
+        .. warning:: It is assumed that all maps are aligned and
+                     sorted prior to loading them into a cube!
         """
-        cube = files_to_cube(files)
+        cube = maps_to_cube(files_to_maps(files, **kwargs))
         return cls(cube.data, cube.wcs, meta=cube.meta)
 
     @property

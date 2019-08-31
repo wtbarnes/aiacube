@@ -10,11 +10,11 @@ import astropy.units as u
 import astropy.time
 import astropy.wcs
 from sunpy.map import Map
+import ndcube
 
 from aiacube.io import validate_dtype_shape, get_header, DelayedFITS
 
-__all__ = ['make_time_wcs', 'files_to_maps', 'futures_to_maps', 'maps_to_cube',
-           'files_to_cube', 'futures_to_cube']
+__all__ = ['make_time_wcs', 'files_to_maps', 'futures_to_maps', 'maps_to_cube']
 
 
 def get_headers(openfiles, hdu):
@@ -91,26 +91,12 @@ def maps_to_cube(maps):
     `~sunpy.map.Map` objects. It is assumed that the maps are
     sorted with increasing time.
     """
-    from aiacube import AIACube  # to prevent circular import
     data_stacked = da.stack([m.data for m in maps])
     meta_all = {i: m.meta for i, m in enumerate(maps)}
     t0 = astropy.time.Time(maps[0].meta['t_obs'])
     time = u.Quantity([(astropy.time.Time(m.meta['t_obs']) - t0).to(u.s)
                        for m in maps])
-    return AIACube(data_stacked, make_time_wcs(maps[0], time), meta=meta_all)
-
-
-def files_to_cube(files, **kwargs):
-    """
-    Create lazily-loaded NDCube backed by a Dask array from a list of files.
-    It is assumed that all maps are aligned prior to loading them into a cube.
-    """
-    return maps_to_cube(files_to_maps(files, **kwargs))
-
-
-def futures_to_cube(futures):
-    """
-    Wrapper function for creating `ndcube.NDCube` from `distributed.Future`
-    objects.
-    """
-    return maps_to_cube(futures_to_maps(futures))
+    return ndcube.NDCube(data_stacked,
+                         make_time_wcs(maps[0], time),
+                         meta=meta_all,
+                         unit=maps[0].meta.get('bunit'))
