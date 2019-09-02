@@ -44,7 +44,25 @@ def make_time_wcs(smap_ref, time):
     return astropy.wcs.WCS(wcs)
 
 
-def files_to_maps(files, hdu=0, verify=False):
+def files_to_maps(files, keep_in_memory=False, hdu=0, verify=False):
+    """
+    Create a list of `~sunpy.map.Map` objects from a list of FITS files.
+    
+    Parameters
+    ----------
+    files : `list`
+        List of FITS files
+    keep_in_memory : `bool`, optional
+        If True, keep the image data in the memory of the cluster
+    hdu : `int`, optional
+    verify : `bool`, optional
+        If True, try to fix the FITS header before loading it in.
+    """
+    if keep_in_memory:
+        client = distributed.get_client()
+        futures = client.map(Map, files, pure=True)
+        return futures_to_maps(futures)
+
     openfiles = dask.bytes.open_files(files)
     headers = get_headers(openfiles, hdu)
     dtype_shape = [validate_dtype_shape(h) for h in headers]
