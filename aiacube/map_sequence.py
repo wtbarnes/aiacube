@@ -17,6 +17,14 @@ class AIACube(ndcube.NDCube):
     Container for sequential level 1.5 images for a single wavelength
     """
     @classmethod
+    def from_maps(cls, maps):
+        """
+        Create a data cube from a list of `~sunpy.map.Map` objects
+        """
+        cube = maps_to_cube(maps)
+        return cls(cube.data, cube.wcs, meta=cube.meta, unit=cube.unit)
+
+    @classmethod
     def from_futures(cls, futures):
         """
         Create a data cube from a list of futures that each return a

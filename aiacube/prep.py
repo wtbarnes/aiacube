@@ -34,6 +34,7 @@ def prep_and_normalize(maps):
         maps_norm = client.map(normalize_to_exposure_time, maps_prep,
                                pure=True)
         # NOTE: This returns maps which are in the memory of the cluster
+        distributed.wait(maps_norm)
         return futures_to_maps(maps_norm)
 
 
