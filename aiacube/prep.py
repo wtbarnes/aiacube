@@ -11,34 +11,41 @@ import astropy.units as u
 from sunpy.map.header_helper import get_observer_meta
 from sunpy.physics.differential_rotation import solar_rotate_coordinate
 
-from aiacube.util import futures_to_maps
-
-__all__ = ['prep_and_normalize', 'normalize_to_exposure_time', 'derotate',
-           'aiaprep']
+__all__ = ['normalize_to_exposure_time', 'derotate', 'aiaprep']
 
 
-def prep_and_normalize(maps):
+def register_and_derotate(maps, ref_index=0):
     """
-    Convert level 1 maps to level 1.5 maps by aligning solar north with the
-    vertical axis of the image, aligning the sun center and the center
-    of the image, and scaling to a common resolution. Also normalizes by
-    the exposure time such that the units of the map are DN pix-1 s-1
+    Process images to level 1.5, normalize to the exposure time, and derotate
+    to a reference observer.
+
+    Parameters
+    ----------
+    maps: `list`
+        List of `distributed.Future` objects that each return a
+        `~sunpy.map.Map`. These should be in sequential order and
+        for a single wavelength.
+    ref_index: `int`
+        Index of the map to use as the reference
     """
-    try:
-        client = distributed.get_client()
-    except ValueError:
-        return [normalize_to_exposure_time(aiaprep(m, missing=0.0))
-                for m in maps]
-    else:
-        maps_prep = client.map(aiaprep, maps, pure=True, missing=0.0)
-        maps_norm = client.map(normalize_to_exposure_time, maps_prep,
-                               pure=True)
-        # NOTE: This returns maps which are in the memory of the cluster
-        distributed.wait(maps_norm)
-        return futures_to_maps(maps_norm)
+    client = distributed.get_client()
+    ref_map = client.scatter(client.submit(aiaprep, maps[ref_index]))
+    lvl_15_maps = []
+    # Sequential calls to submit to avoid keeping intermediate steps in
+    # memory; This may stress the scheduler though...
+    for m in maps:
+        m_reg = client.submit(aiaprep, m, pure=True, missing=0.0)
+        m_norm = client.submit(normalize_to_exposure_time, m_reg, pure=True)
+        m_derot = client.submit(derotate, m_norm, ref_map=ref_map, pure=True)
+        lvl_15_maps.append(m_derot)
+
+    return lvl_15_maps
 
 
 def normalize_to_exposure_time(smap, default_exposure_time=2.9 * u.s):
+    """
+    Remove this once it an equivalent function is merged into aiapy
+    """
     if smap.exposure_time.value != 0.0:
         exp_time = smap.exposure_time.to(u.s).value
     else:
@@ -75,9 +82,7 @@ def derotate(smap, ref_map=None, rot_type='snodgrass'):
 
 def aiaprep(aiamap, order=3, use_scipy=False, missing=None):
     """
-    This is a temporary version of `~sunpy.instr.aia.aiaprep` adapted directly
-    from sunpy. It will not live here long and eventually aiaprep will live
-    in aiapy anyway
+    Remove this once it an equivalent function is merged into aiapy
     """
     # Target scale is 0.6 arcsec/pixel, but this needs to be adjusted if the
     # map has already been rescaled.
