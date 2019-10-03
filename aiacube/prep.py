@@ -29,7 +29,8 @@ def register_and_derotate(maps, ref_index=0):
         Index of the map to use as the reference
     """
     client = distributed.get_client()
-    ref_map = client.scatter(aiaprep(client.gather(maps[ref_index])))
+    # normalize does not affect observer coordinate
+    ref_map = client.submit(aiaprep, maps[ref_index])
     lvl_15_maps = []
     # Sequential calls to submit to avoid keeping intermediate steps in
     # memory; This may stress the scheduler though...
