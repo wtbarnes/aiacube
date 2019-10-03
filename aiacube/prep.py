@@ -37,7 +37,7 @@ def register_and_derotate(maps, ref_index=0):
     for m in maps:
         m_reg = client.submit(aiaprep, m, pure=True, missing=0.0)
         m_norm = client.submit(normalize_to_exposure_time, m_reg, pure=True)
-        m_derot = client.submit(derotate, m_norm, ref_map=ref_map, pure=True)
+        m_derot = client.submit(derotate, m_norm, pure=True, ref_map=ref_map)
         lvl_15_maps.append(m_derot)
 
     return lvl_15_maps
