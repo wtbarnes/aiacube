@@ -110,6 +110,11 @@ def maps_to_cube(maps):
     sorted with increasing time.
     """
     data_stacked = da.stack([m.data for m in maps])
+    # Bug in Dask that mistakenly casts the stacked array to
+    # type 'O' even when all are float64
+    if not all([m.data.dtype == maps[0].data.dtype for m in maps]):
+        raise ValueError('All darrays must have same data type')
+    data_stacked = data_stacked.astype(maps[0].data.dtype)
     meta_all = {i: m.meta for i, m in enumerate(maps)}
     t0 = astropy.time.Time(maps[0].meta['t_obs'])
     time = u.Quantity([(astropy.time.Time(m.meta['t_obs']) - t0).to(u.s)
