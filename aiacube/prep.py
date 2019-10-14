@@ -4,14 +4,14 @@ and derotating
 """
 import copy
 
-import numpy as np
 from scipy.ndimage import shift
 import distributed
 import astropy.units as u
 from sunpy.map.header_helper import get_observer_meta
 from sunpy.physics.differential_rotation import solar_rotate_coordinate
+from aiapy.calibrate import register
 
-__all__ = ['normalize_to_exposure_time', 'derotate', 'aiaprep']
+__all__ = ['normalize_to_exposure_time', 'derotate']
 
 
 def register_and_derotate(maps, ref_index=0):
@@ -30,12 +30,12 @@ def register_and_derotate(maps, ref_index=0):
     """
     client = distributed.get_client()
     # normalize does not affect observer coordinate
-    ref_map = client.submit(aiaprep, maps[ref_index])
+    ref_map = client.submit(register, maps[ref_index])
     lvl_15_maps = []
     # Sequential calls to submit to avoid keeping intermediate steps in
     # memory; This may stress the scheduler though...
     for m in maps:
-        m_reg = client.submit(aiaprep, m, pure=True, missing=0.0)
+        m_reg = client.submit(register, m, pure=True, missing=0.0)
         m_norm = client.submit(normalize_to_exposure_time, m_reg, pure=True)
         m_derot = client.submit(derotate, m_norm, pure=True, ref_map=ref_map)
         lvl_15_maps.append(m_derot)
@@ -79,42 +79,3 @@ def derotate(smap, ref_map=None, rot_type='snodgrass'):
                                       new_meta['rsun_ref'] * u.m))
 
     return smap._new_instance(data_shifted, new_meta, smap.plot_settings)
-
-
-def aiaprep(aiamap, order=3, use_scipy=False, missing=None):
-    """
-    Remove this once it an equivalent function is merged into aiapy
-    """
-    # Target scale is 0.6 arcsec/pixel, but this needs to be adjusted if the
-    # map has already been rescaled.
-    if ((aiamap.scale[0] / 0.6).round() != 1.0 * u.arcsec / u.pix
-            and aiamap.data.shape != (4096, 4096)):
-        scale = (aiamap.scale[0] / 0.6).round() * 0.6 * u.arcsec
-    else:
-        scale = 0.6 * u.arcsec
-    scale_factor = aiamap.scale[0] / scale
-
-    if missing is None:
-        missing = aiamap.min()
-
-    tempmap = aiamap.rotate(recenter=True,
-                            scale=scale_factor.value,
-                            missing=missing,
-                            order=order,
-                            use_scipy=use_scipy,)
-
-    # extract center from padded aiamap.rotate output
-    # crpix1 and crpix2 will be equal (recenter=True), as aiaprep does not
-    # work with submaps
-    center = np.floor(tempmap.meta['crpix1'])
-    range_side = (center
-                  + np.array([-1, 1]) * aiamap.data.shape[0] / 2) * u.pix
-    newmap = tempmap.submap(u.Quantity([range_side[0], range_side[0]]),
-                            u.Quantity([range_side[1], range_side[1]]))
-
-    newmap.meta['r_sun'] = newmap.meta['rsun_obs'] / newmap.meta['cdelt1']
-    newmap.meta['lvl_num'] = 1.5
-    newmap.meta['bitpix'] = -64
-    newmap.meta['bunit'] = 'ct / pixel'
-
-    return newmap
