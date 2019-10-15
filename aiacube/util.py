@@ -103,12 +103,14 @@ def futures_to_maps(futures):
     return [Map(a, h) for a, h in zip(arrays, headers)]
 
 
-def maps_to_cube(maps):
+def maps_to_cube(maps, sort=True):
     """
     Create an `~ndcube.NDCube` with a time axis from a list of
-    `~sunpy.map.Map` objects. It is assumed that the maps are
-    sorted with increasing time.
+    `~sunpy.map.Map` objects. If `sort` is set to True, the maps
+    will be sorted according to the `t_obs` keyword in the metadata.
     """
+    if sort:
+        maps = sorted(maps, key=lambda x: x.meta['t_obs'])
     data_stacked = da.stack([m.data for m in maps])
     # Bug in Dask that mistakenly casts the stacked array to
     # type 'O' even when all are float64
