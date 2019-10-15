@@ -1,5 +1,6 @@
 """
-Functions for computing time lag and cross-correlation on lazily-loaded AIA data cubes
+Functions for computing time lag and cross-correlation on lazily-loaded AIA
+data cubes
 """
 import copy
 import warnings
@@ -51,8 +52,8 @@ def cross_correlation(ndcube_a, ndcube_b, lags, **kwargs):
 
 def peak_cross_correlation_map(ndcube_a, ndcube_b, **kwargs):
     """
-    Construct map of peak cross-correlation between two channels in each pixel of
-    an AIA map.
+    Construct map of peak cross-correlation between two channels in each pixel
+    of an AIA map.
     """
     time_a = ndcube_a.axis_world_coords('time')
     time_b = ndcube_b.axis_world_coords('time')
@@ -62,7 +63,8 @@ def peak_cross_correlation_map(ndcube_a, ndcube_b, **kwargs):
     cc = cross_correlation(ndcube_a, ndcube_b, lags, **kwargs)
     bounds = kwargs.get('timelag_bounds', None)
     if bounds is not None:
-        indices, = np.where(np.logical_and(lags >= bounds[0], lags <= bounds[1]))
+        indices, = np.where(np.logical_and(lags >= bounds[0],
+                                           lags <= bounds[1]))
         start = indices[0]
         stop = indices[-1] + 1
     else:
@@ -70,6 +72,7 @@ def peak_cross_correlation_map(ndcube_a, ndcube_b, **kwargs):
         stop = lags.shape[0] + 1
     max_cc = cc[start:stop, :, :].max(axis=0)
     meta = copy.deepcopy(ndcube_a.meta[0])
+    meta.update(ndcube_a.wcs.to_header())  # only WCS preserves slice info
     del meta['instrume']
     del meta['t_obs']
     del meta['wavelnth']
@@ -104,6 +107,7 @@ def time_lag_map(ndcube_a, ndcube_b, **kwargs):
     i_max_cc = cc[start:stop, :, :].argmax(axis=0)
     max_timelag = da.from_array(lags[start:stop])[i_max_cc.flatten()].reshape(i_max_cc.shape)
     meta = copy.deepcopy(ndcube_a.meta[0])
+    meta.update(ndcube_a.wcs.to_header())
     del meta['instrume']
     del meta['t_obs']
     del meta['wavelnth']
