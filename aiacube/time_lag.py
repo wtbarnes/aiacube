@@ -78,7 +78,11 @@ def peak_cross_correlation_map(ndcube_a, ndcube_b, **kwargs):
     del meta['wavelnth']
     meta['bunit'] = ''
     meta['comment'] = f'{ndcube_a.meta[0]["wavelnth"]}-{ndcube_b.meta[0]["wavelnth"]} cross-correlation'
-    plot_settings = {'cmap': 'plasma'}
+    plot_settings = {
+        'cmap': 'plasma',
+        'vmin': 0,
+        'vmax': 1,
+    }
     plot_settings.update(kwargs.get('plot_settings', {}))
     correlation_map = GenericMap(max_cc, meta, plot_settings=plot_settings)
 
@@ -119,6 +123,6 @@ def time_lag_map(ndcube_a, ndcube_b, **kwargs):
         'vmax': lags[start:stop].value.max(),
     }
     plot_settings.update(kwargs.get('plot_settings', {}))
-    time_lag_map = GenericMap(max_timelag, meta.copy(), plot_settings=plot_settings.copy())
+    time_lag_map = GenericMap(max_timelag, meta, plot_settings=plot_settings)
 
     return time_lag_map
