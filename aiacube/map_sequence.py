@@ -22,19 +22,19 @@ class AIACube(ndcube.NDCube):
         return cls(cube.data, cube.wcs, meta=cube.meta, unit=cube.unit)
 
     @classmethod
-    def from_futures(cls, futures):
+    def from_futures(cls, futures, sort=True):
         """
         Create a data cube from a list of futures that each return a
         `~sunpy.map.Map` object in order of increasing time.
 
-        .. warning:: It is assumed that all resulting maps are aligned and
-                     sorted prior to loading them into a cube!
+        .. warning:: It is assumed that all resulting maps are aligned
+                     prior to loading them into a cube!
         """
-        cube = maps_to_cube(futures_to_maps(futures), sort=False)
+        cube = maps_to_cube(futures_to_maps(futures), sort=sort)
         return cls(cube.data, cube.wcs, meta=cube.meta, unit=cube.unit)
 
     @classmethod
-    def from_files(cls, files, **kwargs):
+    def from_files(cls, files, sort=True, **kwargs):
         """
         Create a data cube from a list of level 1.5 AIA FITS files of a
         single wavelength.
@@ -42,8 +42,7 @@ class AIACube(ndcube.NDCube):
         .. warning:: It is assumed that all maps are aligned prior to loading
                      them into a cube!
         """
-        cube = maps_to_cube(files_to_maps(files, **kwargs),
-                            sort=kwargs.get('sort', True))
+        cube = maps_to_cube(files_to_maps(files, **kwargs), sort=sort)
         return cls(cube.data, cube.wcs, meta=cube.meta, unit=cube.unit)
 
     @property
