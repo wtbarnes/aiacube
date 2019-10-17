@@ -49,8 +49,8 @@ class AIACube(ndcube.NDCube):
         cube = maps_to_cube(files_to_maps(files, **kwargs), sort=sort)
         return cls(cube.data, cube.wcs, meta=cube.meta, unit=cube.unit)
 
-    @u.quantity_input
     @classmethod
+    @u.quantity_input
     def from_zarr(cls, url, wavelength: u.angstrom, **kwargs):
         """
         Load a level 2 data cube for a given wavelength from a Zarr dataset
