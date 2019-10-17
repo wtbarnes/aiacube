@@ -94,3 +94,9 @@ class AIACube(ndcube.NDCube):
         z = zarr.open(url, mode='a')
         z[group].attrs['wcs'] = dict(self.wcs.to_header())
         z[group].attrs['meta'] = self.meta
+
+    def rechunk(self, chunks):
+        if not isinstance(self.data, dask.array.Array):
+            raise ValueError('Can only rechunk a Dask array')
+        data = self.data.rechunk(chunks)
+        return AIACube(data, self.wcs, meta=self.meta, unit=self.unit)
