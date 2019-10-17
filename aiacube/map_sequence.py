@@ -51,7 +51,7 @@ class AIACube(ndcube.NDCube):
 
     @u.quantity_input
     @classmethod
-    def from_zarr(cls, url, wavelength: u.angstrom):
+    def from_zarr(cls, url, wavelength: u.angstrom, **kwargs):
         """
         Load a level 2 data cube for a given wavelength from a Zarr dataset
 
@@ -65,7 +65,7 @@ class AIACube(ndcube.NDCube):
         cube : AIACube
         """
         group = f'{wavelength.to(u.angstrom).value:.0f}'
-        data = dask.array.from_zarr(url, component=group)
+        data = dask.array.from_zarr(url, component=group, **kwargs)
         z = zarr.open(url, mode='r')
         wcs = z[group].attrs['wcs']
         for i in range(data.ndim):
@@ -85,12 +85,12 @@ class AIACube(ndcube.NDCube):
         # All wavelengths should be the same in a cube
         return self.maps[0].wavelength
 
-    def to_zarr(self, url):
+    def to_zarr(self, url, **kwargs):
         """
         Store data cube as a Zarr dataset
         """
         group = f'{self.wavelength.to(u.angstrom).value:.0f}'
-        dask.array.to_zarr(self.data, url, component=group)
+        dask.array.to_zarr(self.data, url, component=group, **kwargs)
         z = zarr.open(url, mode='a')
         z[group].attrs['wcs'] = dict(self.wcs.to_header())
         z[group].attrs['meta'] = self.meta
