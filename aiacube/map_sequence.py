@@ -1,9 +1,12 @@
 """
 Containers for storing stacked AIA images
 """
+import copy
+
 import astropy.units as u
 import astropy.wcs
 from sunpy.map.sources import AIAMap
+from sunpy.util import MetaDict
 import dask.array
 import ndcube
 import zarr
@@ -78,7 +81,27 @@ class AIACube(ndcube.NDCube):
 
     @property
     def maps(self,):
-        return [AIAMap(d, self.meta[i]) for i, d in enumerate(self.data)]
+        """
+        Create `~sunpy.map.Map` objects from data cubes. This is
+        just a temporary method and eventually we will not need to
+        worry about this translation.
+        """
+        if self.dimensions.shape[0] < 2:
+            raise ValueError('Cannot create map from 1D data')
+        elif self.dimensions.shape[0] == 2:
+            meta = copy.deepcopy(self.meta[0])
+            meta.update(MetaDict(dict(self.wcs.to_header())))
+            return [AIAMap(self.data, meta)]
+        elif self.dimensions.shape[0] == 3:
+            maps = []
+            wcs_dict = MetaDict(dict(self.wcs.to_header()))
+            for i, d in enumerate(self.data):
+                meta = copy.deepcopy(self.meta[i])
+                meta.update(wcs_dict)
+                maps.append(AIAMap(d, meta))
+            return maps
+        else:
+            raise ValueError('Cannot create maps from higher dimensional cubes')
 
     @property
     def wavelength(self):
