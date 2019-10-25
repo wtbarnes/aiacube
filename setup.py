@@ -32,7 +32,7 @@ setup(
         'numpy',
         'dask',
         'distributed',
-        #'ndcube',  # version requirements for astropy are wrong
+        'ndcube',  # version requirements for astropy are wrong
         'scipy',
         'distributed'
     ],
