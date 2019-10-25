@@ -102,7 +102,8 @@ def time_lag_map(ndcube_a, ndcube_b, **kwargs):
     cc = cross_correlation(ndcube_a, ndcube_b, lags, **kwargs)
     bounds = kwargs.get('timelag_bounds', None)
     if bounds is not None:
-        indices, = np.where(np.logical_and(lags >= bounds[0], lags <= bounds[1]))
+        indices, = np.where(np.logical_and(lags >= bounds[0],
+                                           lags <= bounds[1]))
         start = indices[0]
         stop = indices[-1] + 1
     else:
